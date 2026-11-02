@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Planilla Docente Técnica - Registro y Asistencia</title>
+  <style>
+    :root {
+      --bg: #070b13;
+      --card-bg: #0d1527;
+      --card-border: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #0ea5e9;
+      --primary-hover: #0284c7;
+      --presente: #10b981;
+      --ausente: #ef4444;
+      --tarde: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --input-bg: #050811;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; padding: 12px; padding-bottom: 95px; }
+
+    /* Barra Superior */
+    header {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .brand { display: flex; align-items: center; gap: 8px; }
+    .brand-icon {
+      width: 32px; height: 32px; border-radius: 8px; background: rgba(14, 165, 233, 0.15);
+      border: 1px solid rgba(14, 165, 233, 0.3); display: flex; align-items: center; justify-content: center;
+      color: var(--primary); font-size: 1.1rem;
+    }
+    .brand-title { font-size: 1rem; font-weight: 700; color: #fff; }
+
+    .header-actions { display: flex; align-items: center; gap: 6px; }
+    .btn-icon-head {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--card-border);
+      color: var(--text-main); padding: 6px 10px; border-radius: 8px; font-size: 0.75rem;
+      font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;
+    }
+    .btn-icon-head:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-undo { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border-color: rgba(139, 92, 246, 0.3); }
+
+    /* Info Agenda y Horario del Día */
+    .schedule-banner {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(139, 92, 246, 0.08));
+      border: 1px solid rgba(14, 165, 233, 0.25);
+      border-radius: 10px;
+      padding: 9px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 0.8rem;
+    }
+    .dia-tag { font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px; }
+    .materia-badge { background: #070b13; border: 1px solid var(--card-border); padding: 3px 8px; border-radius: 6px; color: #cbd5e1; font-weight: 600; }
+
+    /* Filtros y Selectores */
+    .filter-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 3px; }
+    .filter-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+    select, input[type="date"] {
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 9px 10px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      outline: none;
+    }
+    select:focus, input[type="date"]:focus { border-color: var(--primary); }
+
+    /* Barra de Estadísticas */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 9px;
+      padding: 8px;
+      text-align: center;
+    }
+    .stat-val { font-size: 1.2rem; font-weight: 800; display: block; }
+    .stat-lbl { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+    .val-p { color: var(--presente); }
+    .val-a { color: var(--ausente); }
+    .val-t { color: var(--tarde); }
+
+    /* Lista de Alumnos */
+    .alumnos-container { display: flex; flex-direction: column; gap: 7px; }
+    .alumno-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .alumno-meta { flex: 1; min-width: 0; }
+    .alumno-name { font-size: 0.92rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .alumno-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
+
+    .alumno-actions { display: flex; align-items: center; gap: 7px; }
+    
+    .input-grade {
+      width: 46px; height: 44px; text-align: center;
+      background: var(--input-bg); border: 1px solid var(--card-border);
+      border-radius: 8px; color: #fff; font-size: 1rem; font-weight: 700;
+      outline: none;
+    }
+    .input-grade:focus { border-color: var(--primary); }
+
+    .btn-state {
+      width: 44px; height: 44px; border-radius: 8px; border: none;
+      font-weight: 800; font-size: 1.05rem; color: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .st-P { background-color: var(--presente); }
+    .st-A { background-color: var(--ausente); }
+    .st-T { background-color: var(--tarde); color: #000; }
+
+    /* Barra Inferior Flotante */
+    .dock {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(7, 11, 19, 0.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--card-border);
+      padding: 10px 14px;
+      display: flex; gap: 8px; z-index: 50;
+    }
+    .btn-dock {
+      flex: 1; padding: 12px; border-radius: 8px; border: none;
+      font-weight: 700; font-size: 0.85rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-dock-secondary { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); }
+    .btn-dock-primary { background: var(--primary); color: #fff; }
+
+    /* Modales */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center;
+      padding: 16px; z-index: 1000;
+    }
+    .modal-backdrop.active { display: flex; }
+    .modal-box {
+      background: #0d1527; border: 1px solid #1e293b; border-radius: 14px;
+      width: 100%; max-width: 440px; padding: 18px; position: relative; max-height: 85vh; display: flex; flex-direction: column;
+    }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .modal-title { font-size: 1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .modal-close { background: transparent; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; }
+
+    .modal-content-scroll { overflow-y: auto; flex: 1; margin-bottom: 12px; }
+    .history-item {
+      background: #070b13; border: 1px solid var(--card-border); border-radius: 8px;
+      padding: 8px 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.78rem;
+    }
+    .history-desc { color: #cbd5e1; }
+    .history-time { color: var(--text-muted); font-size: 0.7rem; }
+
+    .modal-input {
+      width: 100%; background: #050811; border: 1px solid #1e293b; border-radius: 8px;
+      padding: 10px; color: #fff; font-size: 0.85rem; outline: none; margin-bottom: 12px;
+    }
+    .modal-footer { display: flex; align-items: center; justify-content: space-between; }
+    .btn-modal-action { background: #10b981; color: #042f1a; border: none; border-radius: 8px; font-weight: 700; font-size: 0.85rem; padding: 10px 16px; cursor: pointer; }
+
+    #toast {
+      position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%);
+      background: #0284c7; color: #fff; padding: 8px 16px; border-radius: 30px;
+      font-size: 0.8rem; font-weight: 600; opacity: 0; pointer-events: none;
+      transition: opacity 0.2s ease; z-index: 2000;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra Superior -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-title">Control Escolar</div>
+    </div>
+    <div class="header-actions">
+      <!-- Botón Deshacer -->
+      <button class="btn-icon-head btn-undo" id="btnUndo" onclick="deshacerAccion()" disabled title="Deshacer último cambio">
+        ↩ Deshacer
+      </button>
+      <!-- Historial -->
+      <button class="btn-icon-head" onclick="abrirModalHistorial()" title="Ver historial de cambios">
+        📋 Historial
+      </button>
+      <!-- Config Sheets -->
+      <button class="btn-icon-head" onclick="abrirModalSheets()" title="Vincular Google Sheets">
+        ☁
+      </button>
+    </div>
+  </header>
+
+  <!-- Banner con Día y Materia según calendario escolar técnico -->
+  <div class="schedule-banner">
+    <div>
+      <span class="dia-tag" id="labelDiaSemana">HOY</span>
+      <span style="color: var(--text-muted); font-size: 0.72rem; margin-left: 4px;" id="labelFechaCorta">--/--</span>
+    </div>
+    <div class="materia-badge" id="badgeMateria">Materia en curso</div>
+  </div>
+
+  <!-- Selectores de Materia/Curso y Fecha -->
+  <div class="filter-panel">
+    <div class="filter-group">
+      <label class="filter-label">Materia / Escuela</label>
+      <select id="selCurso" onchange="cambiarCurso()">
+        <option value="lunes-tecnica5">Lun: Lab. Sistemas Operativos (Técnica 5)</option>
+        <option value="martes-tecnica2-montaje">Mar: Montaje Proy. (Técnica 2)</option>
+        <option value="martes-tecnica1-analogica">Mar: Elect. Analógica (Técnica 1)</option>
+        <option value="miercoles-tecnica2-das">Mié: D.A.S. (Técnica 2)</option>
+        <option value="miercoles-tecnica1-analogica">Mié: Elect. Analógica (Técnica 1)</option>
+        <option value="viernes-tecnica1-montaje">Vie: Montaje 4° 3° Noche (Técnica 1)</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Fecha</label>
+      <input type="date" id="fechaReg" onchange="cambioDeFechaManual()">
+    </div>
+  </div>
+
+  <!-- Estadísticas de Asistencia -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <span class="stat-val val-p" id="cntP">0</span>
+      <span class="stat-lbl">Presentes</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-val val-a" id="cntA">0</span>
+      <span class="stat-lbl">Ausentes</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-val val-t" id="cntT">0</span>
+      <span class="stat-lbl">Tardes</span>
+    </div>
+  </div>
+
+  <!-- Lista de Estudiantes -->
+  <main class="alumnos-container" id="listaAlumnos"></main>
+
+  <!-- Barra Flotante Inferior -->
+  <div class="dock">
+    <button class="btn-dock btn-dock-secondary" onclick="nuevoAlumno()">+ Alumno</button>
+    <button class="btn-dock btn-dock-primary" onclick="sincronizarConSheets()">☁ Sincronizar Sheets</button>
+  </div>
+
+  <!-- Modal Historial de Cambios -->
+  <div class="modal-backdrop" id="modalHistorial">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title">📋 Historial de Cambios</h2>
+        <button class="modal-close" onclick="cerrarModal('modalHistorial')">&times;</button>
+      </div>
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
+        Registros de faltas o notas modificadas recientemente para evitar confusiones:
+      </p>
+      <div class="modal-content-scroll" id="listaHistorial"></div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-dock btn-dock-secondary" style="font-size: 0.75rem; padding: 8px;" onclick="limpiarHistorial()">Vaciar Historial</button>
+        <button class="btn-dock btn-dock-primary" style="font-size: 0.75rem; padding: 8px;" onclick="cerrarModal('modalHistorial')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Google Sheets -->
+  <div class="modal-backdrop" id="modalSheets">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 class="modal-title">☁ Conectar con Google Sheets</h2>
+        <button class="modal-close" onclick="cerrarModal('modalSheets')">&times;</button>
+      </div>
+      <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 10px; line-height: 1.4;">
+        Pegá la URL de la aplicación web de Google Apps Script (terminada en <code>/exec</code>) para sincronizar las cargas entre tu celular y tu PC:
+      </p>
+      <input type="url" class="modal-input" id="inputUrlExec" placeholder="https://script.google.com/macros/s/.../exec">
+      <div class="modal-footer">
+        <button style="background:transparent; border:none; color:#ef4444; font-size:0.8rem; cursor:pointer;" onclick="desconectarSheets()">Desconectar</button>
+        <div style="display:flex; gap:6px;">
+          <button class="btn-dock btn-dock-secondary" style="padding:8px 12px;" onclick="cerrarModal('modalSheets')">Cancelar</button>
+          <button class="btn-modal-action" onclick="guardarSheetsUrl()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    // Configuración inicial de materias y cursos
+    const DIAS_SEMANA = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    
+    const listasBase = {
+      "lunes-tecnica5": [
+        { id: 101, nombre: "Álvarez, Lucas", estado: "P", nota: "" },
+        { id: 102, nombre: "Benítez, Diego", estado: "P", nota: "" },
+        { id: 103, nombre: "Castillo, Ramiro", estado: "A", nota: "" }
+      ],
+      "martes-tecnica2-montaje": [
+        { id: 201, nombre: "Díaz, Franco", estado: "P", nota: "" },
+        { id: 202, nombre: "Fernández, Tomás", estado: "P", nota: "8" }
+      ],
+      "martes-tecnica1-analogica": [
+        { id: 301, nombre: "García, Juan", estado: "P", nota: "" },
+        { id: 302, nombre: "López, Matías", estado: "T", nota: "" }
+      ],
+      "miercoles-tecnica2-das": [
+        { id: 401, nombre: "Martínez, Axel", estado: "P", nota: "9" },
+        { id: 402, nombre: "Navarro, Bruno", estado: "P", nota: "" }
+      ],
+      "miercoles-tecnica1-analogica": [
+        { id: 501, nombre: "Pérez, Gonzalo", estado: "P", nota: "" },
+        { id: 502, nombre: "Romero, Kevin", estado: "A", nota: "" }
+      ],
+      "viernes-tecnica1-montaje": [
+        { id: 601, nombre: "Acosta, Mateo", estado: "P", nota: "" },
+        { id: 602, nombre: "Cardozo, Sofía", estado: "P", nota: "10" },
+        { id: 603, nombre: "Sosa, Valentín", estado: "P", nota: "" }
+      ]
+    };
+
+    let base = JSON.parse(localStorage.getItem("registro_docente_data")) || listasBase;
+    let historial = JSON.parse(localStorage.getItem("registro_historial_cambios")) || [];
+    let pilaDeshacer = [];
+
+    // Ajuste de fecha al iniciar
+    const hoy = new Date();
+    document.getElementById("fechaReg").value = hoy.toISOString().split("T")[0];
+    actualizarDiaInfo();
+
+    let cursoActual = document.getElementById("selCurso").value;
+
+    function actualizarDiaInfo() {
+      const fechaVal = document.getElementById("fechaReg").value;
+      const partes = fechaVal.split("-");
+      const f = new Date(partes[0], partes[1] - 1, partes[2]);
+      const diaTexto = DIAS_SEMANA[f.getDay()];
+      document.getElementById("labelDiaSemana").textContent = diaTexto;
+      document.getElementById("labelFechaCorta").textContent = `${partes[2]}/${partes[1]}`;
+
+      // Sugerir curso según el día de la semana si es apertura
+      const sel = document.getElementById("selCurso");
+      const badge = document.getElementById("badgeMateria");
+      badge.textContent = sel.options[sel.selectedIndex].text.split("(")[0];
+    }
+
+    function cambioDeFechaManual() {
+      actualizarDiaInfo();
+      renderAlumnos();
+      notif("Fecha actualizada");
+    }
+
+    function cambiarCurso() {
+      cursoActual = document.getElementById("selCurso").value;
+      const sel = document.getElementById("selCurso");
+      document.getElementById("badgeMateria").textContent = sel.options[sel.selectedIndex].text.split("(")[0];
+      renderAlumnos();
+    }
+
+    function renderAlumnos() {
+      const cont = document.getElementById("listaAlumnos");
+      cont.innerHTML = "";
+      const lista = base[cursoActual] || [];
+
+      let cp = 0, ca = 0, ct = 0;
+
+      lista.forEach((al, idx) => {
+        if (al.estado === "P") cp++;
+        if (al.estado === "A") ca++;
+        if (al.estado === "T") ct++;
+
+        const card = document.createElement("div");
+        card.className = "alumno-card";
+        card.innerHTML = `
+          <div class="alumno-meta">
+            <div class="alumno-name">${al.nombre}</div>
+            <div class="alumno-sub">#${idx + 1} • ${al.estado === 'P' ? 'Presente' : al.estado === 'A' ? 'Ausente' : 'Tarde'}</div>
+          </div>
+          <div class="alumno-actions">
+            <input type="text" 
+                   class="input-grade" 
+                   inputmode="numeric" 
+                   placeholder="-" 
+                   value="${al.nota || ''}" 
+                   onfocus="this.dataset.prev = this.value"
+                   onchange="cambiarNota(this, ${idx})">
+            <button class="btn-state st-${al.estado}" 
+                    onclick="rotarEstado(${idx})">${al.estado}</button>
+          </div>
+        `;
+        cont.appendChild(card);
+      });
+
+      document.getElementById("cntP").textContent = cp;
+      document.getElementById("cntA").textContent = ca;
+      document.getElementById("cntT").textContent = ct;
+      guardarEnStorage();
+      actualizarBotonUndo();
+    }
+
+    // Rotación de estado con registro de deshacer e historial
+    function rotarEstado(idx) {
+      const ciclo = ["P", "A", "T"];
+      const alumno = base[cursoActual][idx];
+      const estadoAnterior = alumno.estado;
+      const nuevoEstado = ciclo[(ciclo.indexOf(estadoAnterior) + 1) % ciclo.length];
+
+      // Guardar acción para DESHACER
+      pilaDeshacer.push({
+        tipo: "asistencia",
+        curso: cursoActual,
+        alumnoIdx: idx,
+        anterior: estadoAnterior,
+        nuevo: nuevoEstado,
+        nombre: alumno.nombre
+      });
+
+      // Modificar
+      alumno.estado = nuevoEstado;
+
+      // Registrar en historial
+      agregarHistorial(`${alumno.nombre}: cambió asistencia de ${estadoAnterior} a ${nuevoEstado}`);
+      
+      renderAlumnos();
+    }
+
+    // Validación de nota con registro de deshacer e historial
+    function cambiarNota(input, idx) {
+      const alumno = base[cursoActual][idx];
+      const notaAnterior = input.dataset.prev || alumno.nota || "";
+      let val = input.value.trim().replace(",", ".");
+
+      if (val === "") {
+        if (notaAnterior !== "") {
+          pilaDeshacer.push({ tipo: "nota", curso: cursoActual, alumnoIdx: idx, anterior: notaAnterior, nuevo: "", nombre: alumno.nombre });
+          agregarHistorial(`${alumno.nombre}: se borró la nota (anterior: ${notaAnterior})`);
+          alumno.nota = "";
+          renderAlumnos();
+        }
+        return;
+      }
+
+      let n = parseFloat(val);
+      if (isNaN(n) || n < 1 || n > 10) {
+        notif("⚠️ Error: Ingrese una nota del 1 al 10");
+        input.value = notaAnterior;
+      } else {
+        const notaFinal = n.toString();
+        if (notaFinal !== notaAnterior) {
+          pilaDeshacer.push({ tipo: "nota", curso: cursoActual, alumnoIdx: idx, anterior: notaAnterior, nuevo: notaFinal, nombre: alumno.nombre });
+          agregarHistorial(`${alumno.nombre}: calificación modificada a ${notaFinal} (antes: ${notaAnterior || 'vacía'})`);
+          alumno.nota = notaFinal;
+          notif(`Nota guardada: ${notaFinal}`);
+          renderAlumnos();
+        }
+      }
+    }
+
+    // Función para DESHACER la última carga equivocada
+    function deshacerAccion() {
+      if (pilaDeshacer.length === 0) return;
+      const accion = pilaDeshacer.pop();
+
+      if (accion.tipo === "asistencia") {
+        base[accion.curso][accion.alumnoIdx].estado = accion.anterior;
+        notif(`↩ Deshecho: ${accion.nombre} volvió a ${accion.anterior}`);
+        agregarHistorial(`↩ DESHECHO: ${accion.nombre} volvió a ${accion.anterior}`);
+      } else if (accion.tipo === "nota") {
+        base[accion.curso][accion.alumnoIdx].nota = accion.anterior;
+        notif(`↩ Deshecho: ${accion.nombre} recuperó nota ${accion.anterior || '-'}`);
+        agregarHistorial(`↩ DESHECHO: ${accion.nombre} recuperó nota ${accion.anterior || '-'}`);
+      }
+      renderAlumnos();
+    }
+
+    function actualizarBotonUndo() {
+      const btn = document.getElementById("btnUndo");
+      btn.disabled = (pilaDeshacer.length === 0);
+    }
+
+    function agregarHistorial(texto) {
+      const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      historial.unshift({ texto: texto, hora: hora });
+      if (historial.length > 50) historial.pop();
+      localStorage.setItem("registro_historial_cambios", JSON.stringify(historial));
+    }
+
+    function abrirModalHistorial() {
+      const cont = document.getElementById("listaHistorial");
+      cont.innerHTML = "";
+      if (historial.length === 0) {
+        cont.innerHTML = `<p style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:15px;">No hay cambios registrados en esta sesión.</p>`;
+      } else {
+        historial.forEach(h => {
+          const div = document.createElement("div");
+          div.className = "history-item";
+          div.innerHTML = `<span class="history-desc">${h.texto}</span><span class="history-time">${h.hora}</span>`;
+          cont.appendChild(div);
+        });
+      }
+      document.getElementById("modalHistorial").classList.add("active");
+    }
+
+    function limpiarHistorial() {
+      historial = [];
+      localStorage.removeItem("registro_historial_cambios");
+      abrirModalHistorial();
+      notif("Historial vaciado");
+    }
+
+    function nuevoAlumno() {
+      const nom = prompt("Apellido y Nombre del nuevo estudiante:");
+      if (nom && nom.trim()) {
+        if (!base[cursoActual]) base[cursoActual] = [];
+        base[cursoActual].push({ id: Date.now(), nombre: nom.trim(), estado: "P", nota: "" });
+        agregarHistorial(`Se agregó el alumno: ${nom.trim()}`);
+        renderAlumnos();
+        notif("Alumno agregado");
+      }
+    }
+
+    function guardarEnStorage() {
+      localStorage.setItem("registro_docente_data", JSON.stringify(base));
+    }
+
+    function notif(txt) {
+      const t = document.getElementById("toast");
+      t.textContent = txt;
+      t.style.opacity = "1";
+      setTimeout(() => { t.style.opacity = "0"; }, 2200);
+    }
+
+    // Modal Sheets
+    function abrirModalSheets() {
+      document.getElementById("inputUrlExec").value = localStorage.getItem("sheets_exec_url") || "";
+      document.getElementById("modalSheets").classList.add("active");
+    }
+    function cerrarModal(id) {
+      document.getElementById(id).classList.remove("active");
+    }
+    function guardarSheetsUrl() {
+      const u = document.getElementById("inputUrlExec").value.trim();
+      localStorage.setItem("sheets_exec_url", u);
+      cerrarModal('modalSheets');
+      notif("Enlace Sheets guardado");
+    }
+    function desconectarSheets() {
+      localStorage.removeItem("sheets_exec_url");
+      document.getElementById("inputUrlExec").value = "";
+      cerrarModal('modalSheets');
+      notif("Desconectado");
+    }
+
+    async function sincronizarConSheets() {
+      const url = localStorage.getItem("sheets_exec_url");
+      if (!url) {
+        abrirModalSheets();
+        return;
+      }
+      notif("Sincronizando con Google Drive...");
+      try {
+        await fetch(url, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fecha: document.getElementById("fechaReg").value,
+            curso: cursoActual,
+            alumnos: base[cursoActual]
+          })
+        });
+        notif("¡Sincronizado con Sheets!");
+        agregarHistorial("Sincronización completa con Google Sheets");
+      } catch (e) {
+        notif("Error al sincronizar");
+      }
+    }
+
+    renderAlumnos();
+  </script>
+</body>
+</html>
